@@ -27,7 +27,9 @@
 {Make a list of websites that you found helpful in this project}
 
 - [Video on sqlite3 with python](https://www.youtube.com/watch?v=pd-0G0MigUA)
-- [Web Site Name](http://url.link.goes.here)
+- [Quick overview on SQL](https://www.youtube.com/watch?v=zsjvFFKOm3c)
+- [sqlite beginner video](https://www.youtube.com/watch?v=8Xyn8R9eKB8)
+- [sqlite tutorial](https://www.youtube.com/watch?v=byHcYRpMgI4&t=1878s)
 
 # Future Work
 
