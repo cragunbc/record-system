@@ -1,4 +1,4 @@
-import sqlite3
+import sqlite3 # Imports sqlite3 into the program
 
 # Create a database file
 conn = sqlite3.connect("practice.db")  # makes a file instead of in-memory
@@ -6,11 +6,13 @@ cursor = conn.cursor()
 user_input = "" # Defines the user_input variable so that it can be used
 
 # Creates a table called customers if one doesn't exist to begin with
-# cursor.execute("""CREATE TABLE customers (
-#             first_name text,
-#             last_name text,
-#             email text
-#         )""")
+cursor.execute("""CREATE TABLE IF NOT EXISTS customers (
+            first_name text,
+            last_name text,
+            email text
+        )""")
+
+conn.commit()
 
 # Prints a welcome statement when using the program
 print("\nWelcome to the student record system. Please select an option below:")
@@ -110,7 +112,7 @@ def updateUser():
     cursor.execute(f"UPDATE customers SET {requested_value} = ? WHERE rowid = ?",
                    (changed_value, user_id))
     
-    print(f"{field_display} has been successfully updated to {changed_value} for user with ID {user_id}!")
+    print(f"\n✅ {field_display} has been successfully updated to {changed_value} for user with ID {user_id}!✅ ")
 
     conn.commit() # Commits the code to be executed
 
@@ -119,7 +121,7 @@ def deleteUser():
     displayAllContents()
 
     try:
-        user_id = int(input("\nEnter the ID of the user that you want to change: "))
+        user_id = int(input("\nEnter the ID of the user that you want to delete: "))
     except ValueError:
         print("Please enter a valid ID number")
         return
@@ -140,7 +142,7 @@ def deleteUser():
 
     cursor.execute("DELETE FROM customers WHERE rowid = ?", (user_id,))
 
-    print(f"\nYour user {user[1]} {user[2]} with the ID of {user_id} has been successfully deleted")
+    print(f"\n✅ Your user '{user[1]} {user[2]}' with the ID of {user_id} has been successfully deleted ✅")
 
     conn.commit() # Commits the code to be executed
 
@@ -154,7 +156,11 @@ while user_input != 5: # Flips
         3. Delete a student record
         4. Display all contents  
         5. Quit program""")
-    user_input = int(input("\nEnter your selection: "))
+    try:
+        user_input = int(input("\nEnter your selection: "))
+    except ValueError:
+        print("Please enter a valid numeric option")
+        continue
 
     if user_input == 1:
         insertItem()
@@ -167,9 +173,6 @@ while user_input != 5: # Flips
     elif user_input == 5:
         print("Thanks for using the program!")
     else:
-        print("Please select from options 1-4")
+        print("Please select from options 1-5")
 
-conn.commit() # Commits the code to be executed
 conn.close() # Closes the connection
-
-# print("Database created successfully → practice.db")
