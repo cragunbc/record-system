@@ -2,7 +2,7 @@ import sqlite3 # Imports sqlite3 into the program
 
 # Create a database file
 conn = sqlite3.connect("practice.db")  # makes a file instead of in-memory
-cursor = conn.cursor()
+cursor = conn.cursor() # Creates a variable called cursor and assigns it conn.cursor()
 user_input = "" # Defines the user_input variable so that it can be used
 
 # Creates a table called customers if one doesn't exist to begin with
@@ -12,10 +12,10 @@ cursor.execute("""CREATE TABLE IF NOT EXISTS customers (
             email text
         )""")
 
-conn.commit()
+conn.commit() # Commits the code to be executed
 
 # Prints a welcome statement when using the program
-print("\nWelcome to the student record system. Please select an option below:")
+print("\nWelcome to the customer record system. Please select an option below:")
 
 # Defines a function called insertItem that will create a SQL command to add a user to the customer table
 def insertItem():
@@ -24,7 +24,7 @@ def insertItem():
     email = input("Enter an email: ").lower() # Gets the email of the user and stores it in the email variable
     cursor.execute("INSERT INTO customers VALUES (?, ?, ?)", (first_name, last_name, email)) # Populates the values from the user and sends it to the database
 
-    print(f"\nYour user of {first_name} {last_name} has been entered successfully!") # Prints statement saying that the user you entered was successfully added
+    print(f"\nYour customer {first_name} {last_name} has been entered successfully!") # Prints statement saying that the user you entered was successfully added
 
     conn.commit() # Commits the code to be executed
 
@@ -45,7 +45,7 @@ def displayAllContents():
     email_width = 30 # Defines a widht of the email column
 
     # Prints out a header for all of the user info
-    print("\nHere's all of the info for all of your users:\n")
+    print("\nHere's all of the info for all of your customers:\n")
 
     # Prints out the header info for the items in the foor loop
     print(f"""{id_header}{' ' * (id_width - len(id_header) + 1)}{first_header}{' ' * (first_width - len(first_header) + 1)}{last_header}{' ' * (last_width - len(last_header) + 1)}{email_header}{' ' * (email_width - len(email_header))}""")
@@ -57,122 +57,146 @@ def displayAllContents():
         print(f"{item[0]}{' ' * (id_width)}{item[1]}{' ' * (first_width - len(item[1]) + 1)}{item[2]}{' ' * (last_width - len(item[2]) + 1)}{item[3]}{' ' * (email_width - len(item[3]))}")
 
 
+# Defines a function called updateUser
 def updateUser():
-    displayAllContents()
+    displayAllContents() # First displays all of the records currently in the database
     try:
-        user_id = int(input("\nEnter the ID of the user that you want to change: "))
+        # First the program tries to get the user_id
+        user_id = int(input("\nEnter the ID of the customer that you want to change: "))
+    # If the user_id is not a valid number then a ValueError is raised
     except ValueError:
+        # A message is printed saying to enter a valid number
         print("Please enter a valid ID number")
         return
 
     cursor.execute("SELECT rowid, * FROM customers WHERE rowid = ?", (user_id,)) # Pulls everything from the database
     user = cursor.fetchone() # Stores all of the items from the query into a variable
 
-    if user is None:
-        print(f"The ID of {user_id} that you entered doesn't exist")
+    if user is None: # Checks to see if the user submitted exists
+        print(f"The ID of {user_id} that you entered doesn't exist") # If it doesn't exist a message is printed
         return
     
-    print(f"\nHere's the info for the user you selected with ID {user_id}:")
-    print(f"- First Name: {user[1]}")
-    print(f"- Last Name: {user[2]}")
-    print(f"- Email: {user[3]}")
+    # Prints a header message for the the info of the customer that was selected
+    print(f"\nHere's the info for the customer you selected with ID {user_id}:")
+    print(f"- First Name: {user[1]}") # Prints the first name of the customer
+    print(f"- Last Name: {user[2]}") # Prints the last name of the customer
+    print(f"- Email: {user[3]}") # Prints the email address of the customer
 
-    # first_name = input("Enter the first name of the user that you want to change: ").title()
-    # last_name = input("Enter the last name of the user that you're wanting to change: ").title()
-
+    # Prints a header asking what value the user wants to change about the customer
     print("\nWhich value are you wanting to change?")
-    print("1) First Name")
-    print("2) Last Name")
-    print("3) Email")
+    print("1) First Name") # Option 1
+    print("2) Last Name") # Option 2
+    print("3) Email") # Option 3
 
+    # First the original_value is checked to be a valid number option
     try:
         original_value = int(input("Enter a number of which value to change: "))
+    # If the value of original_value is not a valid number selection    
     except ValueError:
-        print("Please enter a valid option")
+        print("Please enter a valid option") # The following message is printed
         return
     
+    # Maps out the values in a dictionary that can be selected from for editing
     mapped_values = {
         1: ("first_name", "First Name"),
         2: ("last_name", "Last Name"),
         3: ("email", "Email")
     }
 
+    # Checks to see if the option that the user selected is not a valid option
     if original_value not in mapped_values:
+        # If so then the following message is printed
         print("Please choose a valid option from 1, 2, or 3")
         return
     
+    # Unpacks the tuple
     requested_value, field_display =  mapped_values[original_value]
-    changed_value = input(f"What would you like to change the {field_display} to: ")
+    changed_value = input(f"What would you like to change the {field_display} to: ") # Asks what to change the field_display to
 
+    # Checks to see if the requested_value is either first_name or last_name
     if requested_value in ["first_name", "last_name"]:
-        changed_value = changed_value.title()
+        changed_value = changed_value.title() # Sets the value of changed_value to itself but sets it to title case
+    # Checks to see if the requested_value is equal to email
     elif requested_value == "email":
-        changed_value = changed_value.lower()
+        changed_value = changed_value.lower() # Sets the value of changed_value to itself but sets it to title case
 
+    # Builds out the SQL statement to update the customer based on the values provided by the user
     cursor.execute(f"UPDATE customers SET {requested_value} = ? WHERE rowid = ?",
                    (changed_value, user_id))
-    
+
+    # Prints out a success message telling the user that their request was fulfilled
     print(f"\n✅ {field_display} has been successfully updated to {changed_value} for user with ID {user_id}!✅ ")
 
     conn.commit() # Commits the code to be executed
 
 
+# Defines a function called deleteUser
 def deleteUser():
-    displayAllContents()
-
-    try:
-        user_id = int(input("\nEnter the ID of the user that you want to delete: "))
+    displayAllContents() # First displays all of the customer records in the database
+    try: # First we try to get a valid ID of a customer to delete
+        user_id = int(input("\nEnter the ID of the customer that you want to delete: "))
+    # If the user_id is not a number then a ValueError occurs
     except ValueError:
+        # The following memssage is printed if the value of the input is not a number
         print("Please enter a valid ID number")
         return
     
-    cursor.execute("SELECT rowid, * FROM customers WHERE rowid = ?", (user_id,)) # Pulls everything from the database
+    cursor.execute("SELECT rowid, * FROM customers WHERE rowid = ?", (user_id,)) # Pulls everything from the database based on rowid
     user = cursor.fetchone() # Stores all of the items from the query into a variable
 
-    if user is None:
+    if user is None: # If the user that was pulled does not exist
+        # The following message is displayed saying the customer doesn't exist
         print(f"The ID of {user_id} that you entered doesn't exist")
         return
     
-    print(f"\nThis is the user that was found: {user[1]} {user[2]}")
+    # Prints the first and last name of the customer that was pulled
+    print(f"\nThis is the customer that was found: {user[1]} {user[2]}")
+    # Asks for confirmation on if we want to delete the customer and assigns the value to confirm_deletion
     confirm_deletion = input(f"Are you sure you want to delete {user[1]} {user[2]}? (yes/no): ")
 
+    # If the value of confirm_deletion is anything other then "yes"
     if confirm_deletion != "yes":
+        # The following message is printed saying that the deletion is being cancelled
         print("Canceling deletion...")
         return
 
+    # The SQL statement is created to delete the customer based on the id that's passed in
     cursor.execute("DELETE FROM customers WHERE rowid = ?", (user_id,))
 
+    # A message is printed saying that the customer that was requested was successfully deleted
     print(f"\n✅ Your user '{user[1]} {user[2]}' with the ID of {user_id} has been successfully deleted ✅")
 
     conn.commit() # Commits the code to be executed
 
 
 # While loop to determine when to stop running
-while user_input != 5: # Flips
-    print("")
+while user_input != 5: # States to keep running if the input that's entered is not 5
+    print("") # Prints an empty line
+    # Prints out the different options that the user can choose from
     print("""Options:
-        1. Enter a new student
-        2. Update a student record
-        3. Delete a student record
-        4. Display all contents  
+        1. Enter a new customer
+        2. Update a customer record
+        3. Delete a customer record
+        4. Display all records  
         5. Quit program""")
-    try:
+    try: # Tries to see if the value of user_input is equal to an integar
         user_input = int(input("\nEnter your selection: "))
-    except ValueError:
+    except ValueError: # If user_input is not a number then a ValueError occurs
+        # The following message is printed if the option entered is not a valid numeric option
         print("Please enter a valid numeric option")
         continue
 
-    if user_input == 1:
-        insertItem()
-    elif user_input == 2:
-        updateUser()
-    elif user_input == 3:
-        deleteUser()
-    elif user_input == 4:
-        displayAllContents()
-    elif user_input == 5:
-        print("Thanks for using the program!")
-    else:
+    if user_input == 1: # Checks to see if user_input is equal to 1
+        insertItem() # If so then the insertItem() function is called
+    elif user_input == 2: # Checks to see if user_input is equal to 2
+        updateUser() # If so then the updateUser() function is called
+    elif user_input == 3: # Checks to see if user_input is equal to 3
+        deleteUser() # If so then the deleteUser() function is called
+    elif user_input == 4: # Checks to see if user_input is equal to 4
+        displayAllContents() # If so then the displayAllContents() function is called
+    elif user_input == 5: # Checks to see if the user_input is equal to 5
+        print("Thanks for using the program!") # If so then the program closes and the following is printed
+    else: # If any other option outside of (1, 2, 3, 4, 5) is entered then the folowing message is printed
         print("Please select from options 1-5")
 
-conn.close() # Closes the connection
+conn.close() # Closes the connection at the end of the program
