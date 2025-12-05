@@ -24,6 +24,8 @@ def insertItem():
 
     print(f"\nYour user of {first_name} {last_name} has been entered successfully!") # Prints statement saying that the user you entered was successfully added
 
+    conn.commit() # Commits the code to be executed
+
 
 # Function to display all of the contents of the database
 def displayAllContents():
@@ -54,8 +56,27 @@ def displayAllContents():
 
 
 def updateUser():
-    first_name = input("Enter the first name of the user that you want to change: ").title()
-    last_name = input("Enter the last name of the user that you're wanting to change: ").title()
+    displayAllContents()
+    try:
+        user_id = int(input("\nEnter the ID of the user that you want to change: "))
+    except ValueError:
+        print("Please enter a valid ID number")
+        return
+
+    cursor.execute("SELECT rowid, * FROM customers WHERE rowid = ?", (user_id,)) # Pulls everything from the database
+    user = cursor.fetchone() # Stores all of the items from the query into a variable
+
+    if user is None:
+        print(f"The ID of {user_id} that you entered doesn't exist")
+        return
+    
+    print(f"\nHere's the info for the user you selected with ID {user_id}:")
+    print(f"- First Name: {user[1]}")
+    print(f"- Last Name: {user[2]}")
+    print(f"- Email: {user[3]}")
+
+    # first_name = input("Enter the first name of the user that you want to change: ").title()
+    # last_name = input("Enter the last name of the user that you're wanting to change: ").title()
 
     print("\nWhich value are you wanting to change?")
     print("1) First Name")
@@ -86,8 +107,43 @@ def updateUser():
     elif requested_value == "email":
         changed_value = changed_value.lower()
 
-    cursor.execute(f"UPDATE customers SET {requested_value} = ? WHERE first_name = ? AND last_name = ?",
-                   (changed_value, first_name, last_name))
+    cursor.execute(f"UPDATE customers SET {requested_value} = ? WHERE rowid = ?",
+                   (changed_value, user_id))
+    
+    print(f"{field_display} has been successfully updated to {changed_value} for user with ID {user_id}!")
+
+    conn.commit() # Commits the code to be executed
+
+
+def deleteUser():
+    displayAllContents()
+
+    try:
+        user_id = int(input("\nEnter the ID of the user that you want to change: "))
+    except ValueError:
+        print("Please enter a valid ID number")
+        return
+    
+    cursor.execute("SELECT rowid, * FROM customers WHERE rowid = ?", (user_id,)) # Pulls everything from the database
+    user = cursor.fetchone() # Stores all of the items from the query into a variable
+
+    if user is None:
+        print(f"The ID of {user_id} that you entered doesn't exist")
+        return
+    
+    print(f"\nThis is the user that was found: {user[1]} {user[2]}")
+    confirm_deletion = input(f"Are you sure you want to delete {user[1]} {user[2]}? (yes/no): ")
+
+    if confirm_deletion != "yes":
+        print("Canceling deletion...")
+        return
+
+    cursor.execute("DELETE FROM customers WHERE rowid = ?", (user_id,))
+
+    print(f"\nYour user {user[1]} {user[2]} with the ID of {user_id} has been successfully deleted")
+
+    conn.commit() # Commits the code to be executed
+
 
 # While loop to determine when to stop running
 while user_input != 5: # Flips
@@ -105,7 +161,7 @@ while user_input != 5: # Flips
     elif user_input == 2:
         updateUser()
     elif user_input == 3:
-        print("Option 3")
+        deleteUser()
     elif user_input == 4:
         displayAllContents()
     elif user_input == 5:
