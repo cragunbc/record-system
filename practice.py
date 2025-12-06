@@ -86,7 +86,44 @@ def displayAllOrders():
 
 
 def displayAllOrdersByID():
-    print("Placeholder")
+    displayAllCustomers()
+    try:
+        customer_id = int(input("Enter a customer ID to show all of their orders: "))
+    except ValueError:
+        print("Please enter a valid ID")
+        return
+    
+    cursor.execute("SELECT rowid, * FROM customers WHERE rowid = ?", (customer_id,))
+    customer = cursor.fetchone()
+    if customer is None:
+        print(f"The customer id {customer_id} doesn't exist")
+        return
+
+    print(f"Here's the info for {customer[1]} {customer[2]}")
+
+    cursor.execute("SELECT customer_id, product, price FROM orders JOIN customers ON customers.rowid = orders.customer_id WHERE customers.rowid = ?", (customer_id,))
+
+    orders = cursor.fetchall()
+
+    if not orders:
+        print(f"Customer {customer[1]} {customer[2]} does not have any orders")
+        return
+    
+    id_header = "ID:"
+    product_header = "Product:"
+    price_header = "Price:"
+
+    id_width = 5
+    product_width = 15
+    price_width = 15
+    
+    print("\nOrders:")
+    print(f"{id_header:<{id_width + 1}}{product_header:<{product_width + 1}}{price_header:<{price_width}}")
+    print("-" * id_width + " " + "-" * product_width + " " + "-" * price_width)
+    for order in orders:
+        formatted_price = f"${order[2]:.2f}"
+        print(f"{order[0]:<{id_width + 1}}{order[1]:<{product_width + 1}}{formatted_price:<{price_width}}")
+
 
 # Defines a function called insertCustomer that will create a SQL command to add a user to the customer table
 def insertCustomer():
@@ -287,7 +324,7 @@ def deleteOrder():
     conn.commit() # Commits the code to be executed
 
 # While loop to determine when to stop running
-while user_input != 8: # States to keep running if the input that's entered is not 8
+while user_input != 9: # States to keep running if the input that's entered is not 8
     print("") # Prints an empty line
     # Prints out the different options that the user can choose from
     print("""Options:
@@ -297,8 +334,9 @@ while user_input != 8: # States to keep running if the input that's entered is n
         4. Display all Customers
         5. Input an order
         6. Display all orders
-        7. Delete an order 
-        8. Quit program""")
+        7. Display all orders by customer ID
+        8. Delete an order 
+        9. Quit program""")
     try: # Tries to see if the value of user_input is equal to an integar
         user_input = int(input("\nEnter your selection: "))
     except ValueError: # If user_input is not a number then a ValueError occurs
@@ -319,10 +357,12 @@ while user_input != 8: # States to keep running if the input that's entered is n
     elif user_input == 6: # Checks to see if the user_input is equal to 6
         displayAllOrders() # If so then the displayAllOrders() function is called
     elif user_input == 7: # Checks to see if the user_input isi equal to 7
-        deleteOrder() # If so then the deleteOrder() function is called
+        displayAllOrdersByID() # If so then the displayAllOrdersByID() function is called
     elif user_input == 8: # Checks to see if the user_input is equal to 8
+        deleteOrder() # If so then the deleteOrder() function is called
+    elif user_input == 9:
         print("Thanks for using the program!") # If so then the program closes and the following is printed
-    else: # If any other option outside of (1, 2, 3, 4, 5, 6, 7, 8) is entered then the folowing message is printed
-        print("Please select from options 1-8")
+    else: # If any other option outside of (1, 2, 3, 4, 5, 6, 7, 8,9) is entered then the folowing message is printed
+        print("Please select from options 1-9")
 
 conn.close() # Closes the connection at the end of the program
