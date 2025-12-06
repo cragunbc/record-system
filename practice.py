@@ -27,11 +27,24 @@ print("\nWelcome to the customer record system. Please select an option below:")
 def insertProduct():
     displayAllCustomers() # First we see all of the customers that are in the database so we can see the ID's of each customer
     # Defines a variable called customer_id that will store the id of the customer that purchased the item
-    customer_id = int(input("\nEnter the ID of the customer that this order belongs to: "))
+    try: # Starts with a try block to see if the customer_id is an int
+        customer_id = int(input("\nEnter the ID of the customer that this order belongs to: "))
+    except ValueError: # A ValueError occurs if the the customer_id is not an int
+        print("Plese enter a valid ID") # Prints the following message if customer_id is not an int
+        return
+    # Adds validation to check the database to see if the customer ID that was entered is valid
+    cursor.execute("SELECT rowid FROM customers WHERE rowid = ?", (customer_id,))
+    if cursor.fetchone() is None: # If the customer ID that was entered is not valid
+        print(f"The customer ID {customer_id} that you entered is not a valid ID") # The following message is printed
+        return
     # Defines a variable called product that will store the name of the item that the customer purchased
     product = input("Enter the name of the product that was purchased: ").title()
     # Defines a variable called price that will store the price of the item that the customer purchased
-    price = float(input("Enter the price of the product that was purchased: "))
+    try: # Starts with a try block to see if the price is equal to a float
+        price = float(input("Enter the price of the product that was purchased: "))
+    except ValueError: # A ValueError occurs if price is not equal to a float
+        print("Please enter a valid price") # Prints the following message if price is not a float
+        return
 
     # Builds out the SQL command that will insert the product into the orders table
     cursor.execute("INSERT INTO orders VALUES (?, ?, ?)", (customer_id, product, price))
@@ -209,14 +222,22 @@ def deleteUser():
     
     # Prints the first and last name of the customer that was pulled
     print(f"\nThis is the customer that was found: {user[1]} {user[2]}")
+
+    cursor.execute("SELECT COUNT(*) FROM orders WHERE customer_id = ?", (user_id,))
+    orderCount = cursor.fetchone()[0]
+    if orderCount > 0:
+        print(f"⚠️ Your user {user[1]} {user[2]} has {orderCount} orders that will also be deleted ⚠️")
+
     # Asks for confirmation on if we want to delete the customer and assigns the value to confirm_deletion
-    confirm_deletion = input(f"Are you sure you want to delete {user[1]} {user[2]}? (yes/no): ")
+    confirm_deletion = input(f"Are you sure you want to delete {user[1]} {user[2]} and all coresponding orders? (yes/no): ")
 
     # If the value of confirm_deletion is anything other then "yes"
     if confirm_deletion != "yes":
         # The following message is printed saying that the deletion is being cancelled
         print("Canceling deletion...")
         return
+
+    cursor.execute("DELETE FROM orders WHERE customer_id = ?", (user_id,))
 
     # The SQL statement is created to delete the customer based on the id that's passed in
     cursor.execute("DELETE FROM customers WHERE rowid = ?", (user_id,))
