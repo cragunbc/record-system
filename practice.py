@@ -71,6 +71,10 @@ def displayAllOrders():
         # Prints out all of the values associated with each value that was pulled from the database
         print(f"{item[0]:<{id_width + 1}}{item[1]:<{customer_width + 1}}{item[2]:<{product_width + 1}}{formatted_price:<{price_width}}")
 
+
+def displayAllOrdersByID():
+    print("Placeholder")
+
 # Defines a function called insertCustomer that will create a SQL command to add a user to the customer table
 def insertCustomer():
     first_name = input("Enter a first name: ").title() # Gets the first name of the user and stores it in the first_name variable
@@ -223,33 +227,40 @@ def deleteUser():
     conn.commit() # Commits the code to be executed
 
 
-def delteOrder():
-    displayAllOrders()
-    try:
-        order_id = int(input("\nEnter the order ID that you want to delete: "))
-    except ValueError:
-        print("Please enter a valid order ID")
+# Defines a function to delete an order
+def deleteOrder():
+    displayAllOrders() # First all of the orders from the database are displayed
+    try: # Starts a try loop to get the ID of the order to be deleted
+        order_id = int(input("\nEnter the order ID that you want to delete: ")) # Stores the ID in a variable called order_id
+    except ValueError: # If the input is not a number then a ValueError occurs
+        print("Please enter a valid order ID") # The following message is printed if the input is not a number
         return
     
+    # Builds and executes the SQL statement to get the info of the order based on the order_id
     cursor.execute("SELECT rowid, * from orders WHERE rowid = ?", (order_id,))
-    order = cursor.fetchone()
+    order = cursor.fetchone() # Get's one order from the database and stores it in a variable called order
 
+    # Checks to see if an order exists
     if order is None:
+        # If the order doesn't exist then the following message is printed
         print(f"The ID of {order_id} that you entered doesn't exist")
         return
     
-    print(f"\nThis is the order info that was found:\n")
-    print(f"Customer ID: {order[1]}")
-    print(f"Product: {order[2]}")
-    print(f"Price: ${order[3]:.2f}")
+    print(f"\nThis is the order info that was found:\n") # Prints a header for the info that's pulled from the database
+    print(f"Customer ID: {order[1]}") # Prints out the customer ID of the order
+    print(f"Product: {order[2]}") # Prints out the product that's in the order
+    print(f"Price: ${order[3]:.2f}") # Prints out the price of the order
 
+    # Defines a variable called confirm_deletion to check that the user wants to delete the order
     confirm_deletion = input(f"\nAre you sure that you want to delete the order for {order[2]}? (yes/no): ")
-    if confirm_deletion != "yes":
-        print("Canceling deletion...")
+    if confirm_deletion != "yes": # If the value of confirm_deletion doesn't equal "yes"
+        print("Canceling deletion...") # Prints the following message saying that the deletion is being canceled
         return
     
+    # Builds and executes the SQL statement to delete the order from the database
     cursor.execute("DELETE FROM orders WHERE rowid = ?", (order_id,))
 
+    # Prints a message saying that the order has been deleted
     print(f"\n✅ Your order for '{order[2]}' with the order ID of {order_id} has been successfully deleted ✅")
 
     conn.commit() # Commits the code to be executed
@@ -287,7 +298,7 @@ while user_input != 8: # States to keep running if the input that's entered is n
     elif user_input == 6: # Checks to see if the user_input is equal to 6
         displayAllOrders() # If so then the displayAllOrders() function is called
     elif user_input == 7: # Checks to see if the user_input isi equal to 7
-        delteOrder() # If so then the deleteOrder() function is called
+        deleteOrder() # If so then the deleteOrder() function is called
     elif user_input == 8: # Checks to see if the user_input is equal to 8
         print("Thanks for using the program!") # If so then the program closes and the following is printed
     else: # If any other option outside of (1, 2, 3, 4, 5, 6, 7, 8) is entered then the folowing message is printed
