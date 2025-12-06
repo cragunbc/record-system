@@ -30,7 +30,7 @@ def insertProduct():
     try: # Starts with a try block to see if the customer_id is an int
         customer_id = int(input("\nEnter the ID of the customer that this order belongs to: "))
     except ValueError: # A ValueError occurs if the the customer_id is not an int
-        print("Plese enter a valid ID") # Prints the following message if customer_id is not an int
+        print("Please enter a valid ID") # Prints the following message if customer_id is not an int
         return
     # Adds validation to check the database to see if the customer ID that was entered is valid
     cursor.execute("SELECT rowid FROM customers WHERE rowid = ?", (customer_id,))
@@ -85,43 +85,52 @@ def displayAllOrders():
         print(f"{item[0]:<{id_width + 1}}{item[1]:<{customer_width + 1}}{item[2]:<{product_width + 1}}{formatted_price:<{price_width}}")
 
 
+# Defines a function called displayAllOrdersByID to display all order that a certain customer has bade
 def displayAllOrdersByID():
-    displayAllCustomers()
-    try:
+    displayAllCustomers() # All of the customers are displayed first
+    try: # Starts with a try block to see if the customer ID is an int
         customer_id = int(input("Enter a customer ID to show all of their orders: "))
-    except ValueError:
-        print("Please enter a valid ID")
+    except ValueError: # If it's not an int then the a ValueError occurs
+        print("Please enter a valid ID") # And the following message is printed
         return
     
+    # Pulls all info from the customers table based on the customer_id
     cursor.execute("SELECT rowid, * FROM customers WHERE rowid = ?", (customer_id,))
-    customer = cursor.fetchone()
-    if customer is None:
-        print(f"The customer id {customer_id} doesn't exist")
+    customer = cursor.fetchone() # Gets the info from the database and stores it in the customer variable
+    if customer is None: # If the customer id equal to None
+        print(f"The customer id {customer_id} doesn't exist") # The following message is displayed
         return
 
+    # Prints out a header message
     print(f"Here's the info for {customer[1]} {customer[2]}")
 
+    # Executes the SQL statement to pull info from both tables
     cursor.execute("SELECT customer_id, product, price FROM orders JOIN customers ON customers.rowid = orders.customer_id WHERE customers.rowid = ?", (customer_id,))
 
+    # Gets all of the info and stores it in the orders variable
     orders = cursor.fetchall()
 
+    # Checks to see if the customer has an orders
     if not orders:
         print(f"Customer {customer[1]} {customer[2]} does not have any orders")
         return
     
-    id_header = "ID:"
-    product_header = "Product:"
-    price_header = "Price:"
+    id_header = "ID:" # Defines a variable id_header and gives it the value of "ID"
+    product_header = "Product:" # Defines a variable product_header and gives it the value of "Product"
+    price_header = "Price:" # Defines a variable price_header and gives it the value of "Price"
 
-    id_width = 5
-    product_width = 15
-    price_width = 15
+    id_width = 5 # Defines a variable id_width and gives it the value of 5
+    product_width = 15 # Defiens a variable product_width and gives it the value of 15
+    price_width = 15 # Defines a variable price_width and gives it the value of 15
     
-    print("\nOrders:")
+    print("\nOrders:") # Prints an Orders header
+    # Prints out the headers for all of the columns
     print(f"{id_header:<{id_width + 1}}{product_header:<{product_width + 1}}{price_header:<{price_width}}")
+    # Prints out breaker lines for each of the columns
     print("-" * id_width + " " + "-" * product_width + " " + "-" * price_width)
-    for order in orders:
-        formatted_price = f"${order[2]:.2f}"
+    for order in orders: # Starts a for loop to go through the orders
+        formatted_price = f"${order[2]:.2f}" # Defines a variable called formatted_price to store the price of the order
+        # Prints all of the values associated with the order
         print(f"{order[0]:<{id_width + 1}}{order[1]:<{product_width + 1}}{formatted_price:<{price_width}}")
 
 
@@ -245,7 +254,7 @@ def deleteUser():
         user_id = int(input("\nEnter the ID of the customer that you want to delete: "))
     # If the user_id is not a number then a ValueError occurs
     except ValueError:
-        # The following memssage is printed if the value of the input is not a number
+        # The following message is printed if the value of the input is not a number
         print("Please enter a valid ID number")
         return
     
