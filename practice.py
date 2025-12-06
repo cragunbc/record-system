@@ -12,13 +12,67 @@ cursor.execute("""CREATE TABLE IF NOT EXISTS customers (
             email text
         )""")
 
+# Creates a table called orders if one doesn't exist to begin with
+cursor.execute("""CREATE TABLE IF NOT EXISTS orders (
+               customer_id INTEGER,
+               product TEXT,
+               price REAL)""")
+
 conn.commit() # Commits the code to be executed
 
 # Prints a welcome statement when using the program
 print("\nWelcome to the customer record system. Please select an option below:")
 
-# Defines a function called insertItem that will create a SQL command to add a user to the customer table
-def insertItem():
+# Defines a function to insert a product into the orders table
+def insertProduct():
+    displayAllCustomers() # First we see all of the customers that are in the database so we can see the ID's of each customer
+    # Defines a variable called customer_id that will store the id of the customer that purchased the item
+    customer_id = int(input("\nEnter the ID of the customer that this order belongs to: "))
+    # Defines a variable called product that will store the name of the item that the customer purchased
+    product = input("Enter the name of the product that was purchased: ").title()
+    # Defines a variable called price that will store the price of the item that the customer purchased
+    price = float(input("Enter the price of the product that was purchased: "))
+
+    # Builds out the SQL command that will insert the product into the orders table
+    cursor.execute("INSERT INTO orders VALUES (?, ?, ?)", (customer_id, product, price))
+
+    # Prints a message saying that the product was successfully entered into the table
+    print(f"\n✅Your product {product} has been entered successfully!✅")
+
+    conn.commit() # Commits the code to be executed
+
+# Defines a function called displayAllOrders that will display all orders from the database
+def displayAllOrders():
+    cursor.execute("SELECT rowid, * from orders") # Pulls all of the items including the rowid from the database
+    items = cursor.fetchall() # Stores all of the orders in a variable called items
+
+    id_header = "ID" # Defines a variable called id_header and sets it equal to "ID"
+    customer_header = "Customer ID" # Defines a variable called customer_header and sets it equal to "Customer ID"
+    product_header = "Product" # Defines a variable called product_header and sets it equal to "Product"
+    price_header = "Price" # Defines a variable called price_header and sets it equal to "Price"
+
+    id_width = 5 # Defines a variable called id_width and sets it equal to 5
+    customer_width = 15 # Defines a variable called customer_width and sets it equal to 15
+    product_width = 15 # Defines a variable called product_width and sets it equal to 15
+    price_width = 15 # Defines a variable called price_width and sets it equal to 15
+
+    print("\nHere's all of the info for all of your orders:\n") # Prints a header saying that all of the order info is below
+
+    # Prints out the header info for all of the various columns that are in the table
+    print(f"{id_header:<{id_width + 1}}{customer_header:<{customer_width + 1}}{product_header:<{product_width + 1}}{price_header:<{price_width}}")
+
+    # Prints a breaker line under all of the column headers stated above
+    print("-" * id_width + " " + "-" * customer_width + " " + "-" * product_width + " " + "-" * price_width)
+
+    # Defines a for loop to go through each of the items that was pulled from the database
+    for item in items:
+        # Defines a variable called formatted_price and formats it to be displayed
+        formatted_price = f"${item[3]:.2f}"
+        # Prints out all of the values associated with each value that was pulled from the database
+        print(f"{item[0]:<{id_width + 1}}{item[1]:<{customer_width + 1}}{item[2]:<{product_width + 1}}{formatted_price:<{price_width}}")
+
+# Defines a function called insertCustomer that will create a SQL command to add a user to the customer table
+def insertCustomer():
     first_name = input("Enter a first name: ").title() # Gets the first name of the user and stores it in the first_name variable
     last_name = input("Enter a last name: ").title() # Gets the last name of the user and stores it in the last_name variable
     email = input("Enter an email: ").lower() # Gets the email of the user and stores it in the email variable
@@ -30,7 +84,7 @@ def insertItem():
 
 
 # Function to display all of the contents of the database
-def displayAllContents():
+def displayAllCustomers():
     cursor.execute("SELECT rowid, * FROM customers") # Pulls everything from the database
     items = cursor.fetchall() # Stores all of the items from the query into a variable
 
@@ -48,18 +102,18 @@ def displayAllContents():
     print("\nHere's all of the info for all of your customers:\n")
 
     # Prints out the header info for the items in the foor loop
-    print(f"""{id_header}{' ' * (id_width - len(id_header) + 1)}{first_header}{' ' * (first_width - len(first_header) + 1)}{last_header}{' ' * (last_width - len(last_header) + 1)}{email_header}{' ' * (email_width - len(email_header))}""")
+    print(f"{id_header:<{id_width + 1}}{first_header:<{first_width + 1}}{last_header:<{last_width + 1}}{email_header:<{email_width + 1}}")
     # Prints out breaker lines for each of the headers
     print("-" * id_width + " " + "-" * first_width + " " + "-" * last_width + " " + "-" * email_width)
 
     for item in items: # Loops through the items using a for loop and prints out the info
         # Prints out head item by the index of where it falls in the list
-        print(f"{item[0]}{' ' * (id_width)}{item[1]}{' ' * (first_width - len(item[1]) + 1)}{item[2]}{' ' * (last_width - len(item[2]) + 1)}{item[3]}{' ' * (email_width - len(item[3]))}")
+        print(f"{item[0]:<{id_width + 1}}{item[1]:<{first_width + 1}}{item[2]:<{last_width + 1}}{item[3]:<{email_width + 1}}")
 
 
 # Defines a function called updateUser
 def updateUser():
-    displayAllContents() # First displays all of the records currently in the database
+    displayAllCustomers() # First displays all of the records currently in the database
     try:
         # First the program tries to get the user_id
         user_id = int(input("\nEnter the ID of the customer that you want to change: "))
@@ -132,7 +186,7 @@ def updateUser():
 
 # Defines a function called deleteUser
 def deleteUser():
-    displayAllContents() # First displays all of the customer records in the database
+    displayAllCustomers() # First displays all of the customer records in the database
     try: # First we try to get a valid ID of a customer to delete
         user_id = int(input("\nEnter the ID of the customer that you want to delete: "))
     # If the user_id is not a number then a ValueError occurs
@@ -169,16 +223,50 @@ def deleteUser():
     conn.commit() # Commits the code to be executed
 
 
+def delteOrder():
+    displayAllOrders()
+    try:
+        order_id = int(input("\nEnter the order ID that you want to delete: "))
+    except ValueError:
+        print("Please enter a valid order ID")
+        return
+    
+    cursor.execute("SELECT rowid, * from orders WHERE rowid = ?", (order_id,))
+    order = cursor.fetchone()
+
+    if order is None:
+        print(f"The ID of {order_id} that you entered doesn't exist")
+        return
+    
+    print(f"\nThis is the order info that was found:\n")
+    print(f"Customer ID: {order[1]}")
+    print(f"Product: {order[2]}")
+    print(f"Price: ${order[3]:.2f}")
+
+    confirm_deletion = input(f"\nAre you sure that you want to delete the order for {order[2]}? (yes/no): ")
+    if confirm_deletion != "yes":
+        print("Canceling deletion...")
+        return
+    
+    cursor.execute("DELETE FROM orders WHERE rowid = ?", (order_id,))
+
+    print(f"\n✅ Your order for '{order[2]}' with the order ID of {order_id} has been successfully deleted ✅")
+
+    conn.commit() # Commits the code to be executed
+
 # While loop to determine when to stop running
-while user_input != 5: # States to keep running if the input that's entered is not 5
+while user_input != 8: # States to keep running if the input that's entered is not 8
     print("") # Prints an empty line
     # Prints out the different options that the user can choose from
     print("""Options:
         1. Enter a new customer
         2. Update a customer record
         3. Delete a customer record
-        4. Display all records  
-        5. Quit program""")
+        4. Display all Customers
+        5. Input an order
+        6. Display all orders
+        7. Delete an order 
+        8. Quit program""")
     try: # Tries to see if the value of user_input is equal to an integar
         user_input = int(input("\nEnter your selection: "))
     except ValueError: # If user_input is not a number then a ValueError occurs
@@ -187,16 +275,22 @@ while user_input != 5: # States to keep running if the input that's entered is n
         continue
 
     if user_input == 1: # Checks to see if user_input is equal to 1
-        insertItem() # If so then the insertItem() function is called
+        insertCustomer() # If so then the insertItem() function is called
     elif user_input == 2: # Checks to see if user_input is equal to 2
         updateUser() # If so then the updateUser() function is called
     elif user_input == 3: # Checks to see if user_input is equal to 3
         deleteUser() # If so then the deleteUser() function is called
     elif user_input == 4: # Checks to see if user_input is equal to 4
-        displayAllContents() # If so then the displayAllContents() function is called
-    elif user_input == 5: # Checks to see if the user_input is equal to 5
+        displayAllCustomers() # If so then the displayAllCustomers() function is called
+    elif user_input == 5: # Checks to see if user_input is equal to 5
+        insertProduct() # If so then the insertProduct() function is called
+    elif user_input == 6: # Checks to see if the user_input is equal to 6
+        displayAllOrders() # If so then the displayAllOrders() function is called
+    elif user_input == 7: # Checks to see if the user_input isi equal to 7
+        delteOrder() # If so then the deleteOrder() function is called
+    elif user_input == 8: # Checks to see if the user_input is equal to 8
         print("Thanks for using the program!") # If so then the program closes and the following is printed
-    else: # If any other option outside of (1, 2, 3, 4, 5) is entered then the folowing message is printed
-        print("Please select from options 1-5")
+    else: # If any other option outside of (1, 2, 3, 4, 5, 6, 7, 8) is entered then the folowing message is printed
+        print("Please select from options 1-8")
 
 conn.close() # Closes the connection at the end of the program
